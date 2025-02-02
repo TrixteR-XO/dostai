@@ -13,7 +13,8 @@ export default function Chatbot() {
     setHistory([...history, input]); // Store in history
     setInput("");
 
-    const response = await fetch("https://dostai-backend.up.railway.app/api/chat", {
+    const response = await fetch("https://dostaibackend-production.up.railway.app/api/chat", {
+
 
 
       method: "POST",
