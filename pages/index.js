@@ -2,39 +2,25 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 
 export default function Chatbot() {
-  const [chatSessions, setChatSessions] = useState([]); // Stores multiple chats
-  const [currentChat, setCurrentChat] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-
-  const startNewChat = () => {
-    if (currentChat.length > 0) {
-      setChatSessions([...chatSessions, currentChat]); // Save current chat to history
-    }
-    setCurrentChat([]); // Start fresh chat
-  };
+  const [history, setHistory] = useState([]);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-    const newMessages = [...currentChat, { role: "user", content: input }];
-    setCurrentChat(newMessages);
+    const newMessages = [...messages, { sender: "user", text: input }];
+    setMessages(newMessages);
+    setHistory([...history, input]); // Store in history
     setInput("");
 
-    try {
-      const response = await fetch("https://dostaibackend-production.up.railway.app/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: newMessages }),
-      });
+    const response = await fetch("http://192.168.4.31:8000/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: input }),
+    });
 
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-
-      const data = await response.json();
-      setCurrentChat([...newMessages, { role: "bot", content: data.reply }]);
-    } catch (error) {
-      setCurrentChat([...newMessages, { role: "bot", content: "Error connecting to AI. Try again." }]);
-    }
+    const data = await response.json();
+    setMessages([...newMessages, { sender: "bot", text: data.reply }]);
   };
 
   const handleKeyDown = (e) => {
@@ -46,31 +32,24 @@ export default function Chatbot() {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar for Chat Sessions */}
+      {/* Sidebar for Chat History */}
       <motion.div 
         initial={{ x: -300 }} 
         animate={{ x: 0 }} 
         transition={{ type: "spring", stiffness: 100 }}
         className="w-64 bg-gray-800 text-white p-4 flex flex-col"
       >
-        <h2 className="text-lg font-bold mb-4">Chat Sessions</h2>
-        <button 
-          onClick={startNewChat} 
-          className="mb-4 p-2 bg-blue-500 text-white rounded"
-        >
-          + New Chat
-        </button>
+        <h2 className="text-lg font-bold mb-4">Chat History</h2>
         <ul className="space-y-2 flex-1 overflow-auto">
-          {chatSessions.map((chat, index) => (
+          {history.map((msg, index) => (
             <motion.li 
               key={index} 
               initial={{ opacity: 0, x: -20 }} 
               animate={{ opacity: 1, x: 0 }} 
               transition={{ duration: 0.3 }}
-              className="p-2 bg-gray-700 rounded cursor-pointer hover:bg-gray-600"
-              onClick={() => setCurrentChat(chat)}
+              className="p-2 bg-gray-700 rounded"
             >
-              Chat {index + 1}
+              {msg}
             </motion.li>
           ))}
         </ul>
@@ -79,25 +58,24 @@ export default function Chatbot() {
       {/* Chat Section */}
       <div className="flex flex-col flex-1 p-4">
         <div className="flex-1 overflow-auto p-4">
-          {currentChat.map((msg, index) => (
+          {messages.map((msg, index) => (
             <motion.div 
               key={index} 
               initial={{ opacity: 0, y: 10 }} 
               animate={{ opacity: 1, y: 0 }} 
               transition={{ duration: 0.2 }}
-              className={`mb-2 ${msg.role === "user" ? "text-right" : "text-left"}`}
+              className={`mb-2 ${msg.sender === "user" ? "text-right" : "text-left"}`}
             >
               <span className={
-                msg.role === "user"
+                msg.sender === "user"
                   ? "bg-blue-500 text-white p-2 rounded-lg"
-                  : "bg-gray-300 p-2 rounded-lg chromatic-aberration"
+                  : "bg-gray-300 p-2 rounded-lg"
               }>
-                {msg.content}
+                {msg.text}
               </span>
             </motion.div>
           ))}
         </div>
-
         {/* Fixed Input Box at the Bottom */}
         <motion.div 
           initial={{ y: 50, opacity: 0 }} 
