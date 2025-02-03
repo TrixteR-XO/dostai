@@ -45,7 +45,10 @@ export default function Chatbot() {
   };
 
   const formatMessage = (message) => {
-    return message.replace(/\n/g, "\n\n").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+    return message
+      .replace(/\n\n/g, "<br /><br />")
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/(\d+\. )/g, "<br /><strong>$1</strong>");
   };
 
   const handleKeyDown = (e) => {
