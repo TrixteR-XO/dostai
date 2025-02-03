@@ -4,20 +4,19 @@ import { motion } from "framer-motion";
 export default function Chatbot() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [history, setHistory] = useState([]);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-    const newMessages = [...messages, { sender: "user", text: input }];
+
+    const newMessages = [...messages, { role: "user", content: input }];
     setMessages(newMessages);
-    setHistory([...history, input]); // Store in history
     setInput("");
 
     try {
       const response = await fetch("https://dostaibackend-production.up.railway.app/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ messages: newMessages }), // Send full conversation
       });
 
       if (!response.ok) {
@@ -25,9 +24,9 @@ export default function Chatbot() {
       }
 
       const data = await response.json();
-      setMessages([...newMessages, { sender: "bot", text: data.reply }]);
+      setMessages([...newMessages, { role: "bot", content: data.reply }]);
     } catch (error) {
-      setMessages([...newMessages, { sender: "bot", text: "Error connecting to AI. Try again." }]);
+      setMessages([...newMessages, { role: "bot", content: "Error connecting to AI. Try again." }]);
     }
   };
 
@@ -49,7 +48,7 @@ export default function Chatbot() {
       >
         <h2 className="text-lg font-bold mb-4">Chat History</h2>
         <ul className="space-y-2 flex-1 overflow-auto">
-          {history.map((msg, index) => (
+          {messages.map((msg, index) => (
             <motion.li 
               key={index} 
               initial={{ opacity: 0, x: -20 }} 
@@ -57,7 +56,7 @@ export default function Chatbot() {
               transition={{ duration: 0.3 }}
               className="p-2 bg-gray-700 rounded"
             >
-              {msg}
+              {msg.role === "user" ? "🧑‍💻 " : "🤖 "} {msg.content}
             </motion.li>
           ))}
         </ul>
@@ -72,14 +71,14 @@ export default function Chatbot() {
               initial={{ opacity: 0, y: 10 }} 
               animate={{ opacity: 1, y: 0 }} 
               transition={{ duration: 0.2 }}
-              className={`mb-2 ${msg.sender === "user" ? "text-right" : "text-left"}`}
+              className={`mb-2 ${msg.role === "user" ? "text-right" : "text-left"}`}
             >
               <span className={
-                msg.sender === "user"
+                msg.role === "user"
                   ? "bg-blue-500 text-white p-2 rounded-lg"
                   : "bg-gray-300 p-2 rounded-lg"
               }>
-                {msg.text}
+                {msg.content}
               </span>
             </motion.div>
           ))}
