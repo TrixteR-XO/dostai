@@ -2,21 +2,28 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 
 export default function Chatbot() {
-  const [messages, setMessages] = useState([]);
+  const [chatSessions, setChatSessions] = useState([]); // Stores multiple chats
+  const [currentChat, setCurrentChat] = useState([]);
   const [input, setInput] = useState("");
+
+  const startNewChat = () => {
+    if (currentChat.length > 0) {
+      setChatSessions([...chatSessions, currentChat]); // Save current chat to history
+    }
+    setCurrentChat([]); // Start fresh chat
+  };
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-
-    const newMessages = [...messages, { role: "user", content: input }];
-    setMessages(newMessages);
+    const newMessages = [...currentChat, { role: "user", content: input }];
+    setCurrentChat(newMessages);
     setInput("");
 
     try {
       const response = await fetch("https://dostaibackend-production.up.railway.app/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: newMessages }), // Send full conversation
+        body: JSON.stringify({ messages: newMessages }),
       });
 
       if (!response.ok) {
@@ -24,9 +31,9 @@ export default function Chatbot() {
       }
 
       const data = await response.json();
-      setMessages([...newMessages, { role: "bot", content: data.reply }]);
+      setCurrentChat([...newMessages, { role: "bot", content: data.reply }]);
     } catch (error) {
-      setMessages([...newMessages, { role: "bot", content: "Error connecting to AI. Try again." }]);
+      setCurrentChat([...newMessages, { role: "bot", content: "Error connecting to AI. Try again." }]);
     }
   };
 
@@ -39,24 +46,31 @@ export default function Chatbot() {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar for Chat History */}
+      {/* Sidebar for Chat Sessions */}
       <motion.div 
         initial={{ x: -300 }} 
         animate={{ x: 0 }} 
         transition={{ type: "spring", stiffness: 100 }}
         className="w-64 bg-gray-800 text-white p-4 flex flex-col"
       >
-        <h2 className="text-lg font-bold mb-4">Chat History</h2>
+        <h2 className="text-lg font-bold mb-4">Chat Sessions</h2>
+        <button 
+          onClick={startNewChat} 
+          className="mb-4 p-2 bg-blue-500 text-white rounded"
+        >
+          + New Chat
+        </button>
         <ul className="space-y-2 flex-1 overflow-auto">
-          {messages.map((msg, index) => (
+          {chatSessions.map((chat, index) => (
             <motion.li 
               key={index} 
               initial={{ opacity: 0, x: -20 }} 
               animate={{ opacity: 1, x: 0 }} 
               transition={{ duration: 0.3 }}
-              className="p-2 bg-gray-700 rounded"
+              className="p-2 bg-gray-700 rounded cursor-pointer hover:bg-gray-600"
+              onClick={() => setCurrentChat(chat)}
             >
-              {msg.role === "user" ? "🧑‍💻 " : "🤖 "} {msg.content}
+              Chat {index + 1}
             </motion.li>
           ))}
         </ul>
@@ -65,7 +79,7 @@ export default function Chatbot() {
       {/* Chat Section */}
       <div className="flex flex-col flex-1 p-4">
         <div className="flex-1 overflow-auto p-4">
-          {messages.map((msg, index) => (
+          {currentChat.map((msg, index) => (
             <motion.div 
               key={index} 
               initial={{ opacity: 0, y: 10 }} 
@@ -76,13 +90,14 @@ export default function Chatbot() {
               <span className={
                 msg.role === "user"
                   ? "bg-blue-500 text-white p-2 rounded-lg"
-                  : "bg-gray-300 p-2 rounded-lg"
+                  : "bg-gray-300 p-2 rounded-lg chromatic-aberration"
               }>
                 {msg.content}
               </span>
             </motion.div>
           ))}
         </div>
+
         {/* Fixed Input Box at the Bottom */}
         <motion.div 
           initial={{ y: 50, opacity: 0 }} 
