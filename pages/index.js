@@ -13,17 +13,22 @@ export default function Chatbot() {
     setHistory([...history, input]); // Store in history
     setInput("");
 
-    const response = await fetch("https://dostaibackend-production.up.railway.app/api/chat", {
+    try {
+      const response = await fetch("https://dostaibackend-production.up.railway.app/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input }),
+      });
 
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
 
-
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: input }),
-    });
-
-    const data = await response.json();
-    setMessages([...newMessages, { sender: "bot", text: data.reply }]);
+      const data = await response.json();
+      setMessages([...newMessages, { sender: "bot", text: data.reply }]);
+    } catch (error) {
+      setMessages([...newMessages, { sender: "bot", text: "Error connecting to AI. Try again." }]);
+    }
   };
 
   const handleKeyDown = (e) => {
