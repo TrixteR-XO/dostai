@@ -92,12 +92,12 @@ export default function Chatbot() {
               initial={{ opacity: 0, y: 10 }} 
               animate={{ opacity: 1, y: 0 }} 
               transition={{ duration: 0.2 }}
-              className={`mb-2 ${msg.role === "user" ? "text-right" : "text-left"}`}
+              className={`mb-2 flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <span className={
                 msg.role === "user"
-                  ? "bg-blue-500 text-white p-3 rounded-lg shadow-lg"
-                  : "bg-gray-700 text-white p-3 rounded-lg shadow-lg"
+                  ? "bg-blue-500 text-white p-3 rounded-lg shadow-lg max-w-3/4"
+                  : "bg-gray-700 text-white p-3 rounded-lg shadow-lg max-w-3/4"
               }>
                 {msg.content}
               </span>
