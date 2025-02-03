@@ -38,10 +38,14 @@ export default function Chatbot() {
       }
 
       const data = await response.json();
-      setCurrentChat([...newMessages, { role: "bot", content: data.reply }]);
+      setCurrentChat([...newMessages, { role: "bot", content: formatMessage(data.reply) }]);
     } catch (error) {
       setCurrentChat([...newMessages, { role: "bot", content: "Error connecting to AI. Try again." }]);
     }
+  };
+
+  const formatMessage = (message) => {
+    return message.replace(/\n/g, "\n\n").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
   };
 
   const handleKeyDown = (e) => {
@@ -98,8 +102,7 @@ export default function Chatbot() {
                 msg.role === "user"
                   ? "bg-blue-500 text-white p-3 rounded-lg shadow-lg max-w-3/4"
                   : "bg-gray-700 text-white p-3 rounded-lg shadow-lg max-w-3/4"
-              }>
-                {msg.content}
+              } dangerouslySetInnerHTML={{ __html: msg.content }}>
               </span>
             </motion.div>
           ))}
