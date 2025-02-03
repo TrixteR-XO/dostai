@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { Menu } from "lucide-react";
 
 export default function Chatbot() {
   const [chatSessions, setChatSessions] = useState([]);
   const [currentChat, setCurrentChat] = useState([]);
   const [input, setInput] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const savedChats = JSON.parse(localStorage.getItem("chatSessions")) || [];
@@ -59,13 +61,18 @@ export default function Chatbot() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-900 text-white">
+    <div className="flex h-screen bg-gray-900 text-white relative">
+      {/* Mobile-friendly Menu Button */}
+      <button onClick={() => setMenuOpen(!menuOpen)} className="absolute top-4 left-4 z-50 md:hidden bg-gray-700 p-2 rounded-lg">
+        <Menu size={24} color="white" />
+      </button>
+
       {/* Sidebar for Chat Sessions */}
       <motion.div 
         initial={{ x: -300 }} 
-        animate={{ x: 0 }} 
+        animate={{ x: menuOpen ? 0 : -300 }} 
         transition={{ type: "spring", stiffness: 100 }}
-        className="w-80 bg-black text-white p-6 flex flex-col border-r border-gray-800 shadow-lg"
+        className="w-80 bg-black text-white p-6 flex flex-col border-r border-gray-800 shadow-lg md:relative md:translate-x-0 fixed h-full z-40"
       >
         <h2 className="text-xl font-bold mb-4">Chat Sessions</h2>
         <button 
